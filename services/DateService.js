@@ -79,8 +79,21 @@ const DateService = {
         yesterday.setDate(yesterday.getDate() - 1);
         const yesterdayStr = yesterday.toISOString().split('T')[0];
 
-        // Allowed if it matches Today or Yesterday IN IST
-        return logDateString === todayStr || logDateString === yesterdayStr;
+        // Allowed if it matches Today
+        if (logDateString === todayStr) {
+            return true;
+        }
+
+        // Allowed for Yesterday ONLY IF current time is before 9:00 AM
+        if (logDateString === yesterdayStr) {
+            const currentHour = now.getHours(); // 0-23
+            // logic: If it's before 9 AM (00:00 - 08:59), allow yesterday.
+            if (currentHour < 9) {
+                return true;
+            }
+        }
+
+        return false;
     }
 };
 

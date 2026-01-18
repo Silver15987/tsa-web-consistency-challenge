@@ -18,8 +18,8 @@ router.post('/start', isAuthenticated, async (req, res) => {
     const { goals } = req.body;
     console.log('User:', req.user.username, 'Starting Challenge with Goals:', goals);
 
-    if (!goals || !Array.isArray(goals) || goals.length !== 10) {
-        return res.status(400).json({ error: 'Please provide exactly 10 goals.' });
+    if (!goals || !Array.isArray(goals) || goals.length < 5) {
+        return res.status(400).json({ error: 'Please provide at least 5 goals.' });
     }
 
     try {
@@ -62,9 +62,22 @@ router.post('/log', isAuthenticated, async (req, res) => {
     }
 
     // Calculate score (number of true values in completedTasks)
-    const dailyScore = completedTasks.filter(Boolean).length;
-
     try {
+        // Fetch User to get total goals count
+        const user = await User.findById(req.user.id);
+        if (!user) return res.status(404).json({ error: 'User not found' });
+
+        const totalGoals = user.goals.length || 10; // Default to 10 if missing (legacy)
+        
+        // Calculate raw completed count
+        const completedCount = completedTasks.filter(Boolean).length;
+        
+        // Calculate Normalized Score (Out of 10)
+        // Formula: (Completed / Total) * 10
+        // Rounded to 1 decimal place to avoid long floats (e.g. 3.3)
+        let dailyScore = (completedCount / totalGoals) * 10;
+        dailyScore = Math.round(dailyScore * 10) / 10;
+
         // Check if log already exists for this date
         let log = await DailyLog.findOne({ userId: req.user.id, date });
 
@@ -78,7 +91,9 @@ router.post('/log', isAuthenticated, async (req, res) => {
             await log.save();
 
             // Update user total score
-            await User.findByIdAndUpdate(req.user.id, { $inc: { totalScore: scoreDiff } });
+            // Use precise addition to avoid floating point drift, then round
+            user.totalScore = Math.round((user.totalScore + scoreDiff) * 10) / 10;
+            await user.save();
         } else {
             // Create new log
             log = new DailyLog({
@@ -92,10 +107,11 @@ router.post('/log', isAuthenticated, async (req, res) => {
             await log.save();
 
             // Add to user total score
-            await User.findByIdAndUpdate(req.user.id, { $inc: { totalScore: dailyScore } });
+            user.totalScore = Math.round((user.totalScore + dailyScore) * 10) / 10;
+            await user.save();
         }
 
-        res.json({ success: true, log });
+        res.json({ success: true, log, totalScore: user.totalScore });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Server error' });
