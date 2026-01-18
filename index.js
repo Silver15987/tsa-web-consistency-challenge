@@ -17,8 +17,26 @@ app.set('trust proxy', 1);
 // Middleware
 app.use(express.json());
 app.use(cookieParser());
+const MongoStore = require('connect-mongo');
+
+// CORS Setup
+const allowedOrigins = [
+    process.env.FRONTEND_URL?.replace(/\/$/, ''), // Cleaned URL
+    'https://thestudyadda.in' // Hardcoded backup
+];
+
 app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173', // Allow frontend origin
+    origin: (origin, callback) => {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        
+        if (allowedOrigins.indexOf(origin) !== -1 || origin === 'http://localhost:5173') {
+            callback(null, true);
+        } else {
+            console.log('Blocked Origin:', origin);
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true 
 }));
 
@@ -27,6 +45,7 @@ app.use(session({
     secret: process.env.SESSION_SECRET || 'super_secret_key_change_me',
     resave: false,
     saveUninitialized: false,
+    store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }),
     cookie: {
         secure: process.env.NODE_ENV === 'production', // Secure cookies in production (Required for SameSite=None)
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // Allow cross-site cookies in production
