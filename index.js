@@ -17,7 +17,7 @@ app.set('trust proxy', 1);
 // Middleware
 app.use(express.json());
 app.use(cookieParser());
-const MongoStore = require('connect-mongo').default;
+const MongoStore = require('connect-mongo').default; // Use default export
 
 // CORS Setup
 const allowedOrigins = [
@@ -75,4 +75,6 @@ app.use('/api/dev', require('./routes/dev'));
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
     console.log(`Server started at: ${new Date().toISOString()}`);
+    console.log(`Environment: ${process.env.NODE_ENV}`);
+    console.log(`Cookie Settings: secure=${process.env.NODE_ENV === 'production'}, sameSite=${process.env.NODE_ENV === 'production' ? 'none' : 'lax'}`);
 });
