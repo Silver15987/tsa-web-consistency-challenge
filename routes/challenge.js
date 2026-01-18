@@ -16,6 +16,7 @@ const isAuthenticated = (req, res, next) => {
 // @desc    Start the challenge and set 10 goals
 router.post('/start', isAuthenticated, async (req, res) => {
     const { goals } = req.body;
+    console.log('User:', req.user.username, 'Starting Challenge with Goals:', goals);
 
     if (!goals || !Array.isArray(goals) || goals.length !== 10) {
         return res.status(400).json({ error: 'Please provide exactly 10 goals.' });
@@ -49,6 +50,7 @@ router.post('/start', isAuthenticated, async (req, res) => {
 // @desc    Log a daily entry
 router.post('/log', isAuthenticated, async (req, res) => {
     const { date, dayNumber, completedTasks, note } = req.body;
+    console.log('User:', req.user.username, 'Logging Day:', dayNumber, 'Date:', date, 'Tasks:', completedTasks);
 
     if (!date || !dayNumber || !completedTasks) {
         return res.status(400).json({ error: 'Missing required fields.' });

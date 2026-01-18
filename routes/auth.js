@@ -53,6 +53,7 @@ router.get('/discord/callback',
     passport.authenticate('discord', { failureRedirect: process.env.FRONTEND_URL }),
     (req, res) => {
         // Successful authentication, redirect to frontend dashboard
+        console.log('User logged in:', req.user.username, 'Discord ID:', req.user.discordId);
         res.redirect(`${process.env.FRONTEND_URL}/consistency-challenge`);
     }
 );

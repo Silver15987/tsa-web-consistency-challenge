@@ -17,7 +17,7 @@ app.set('trust proxy', 1);
 // Middleware
 app.use(express.json());
 app.use(cookieParser());
-const MongoStore = require('connect-mongo');
+const MongoStore = require('connect-mongo').default;
 
 // CORS Setup
 const allowedOrigins = [
@@ -74,4 +74,5 @@ app.use('/api/dev', require('./routes/dev'));
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
+    console.log(`Server started at: ${new Date().toISOString()}`);
 });
