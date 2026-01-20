@@ -1,19 +1,21 @@
 const CHALLENGE_START_DATE = new Date('2026-01-19T00:00:00+05:30'); // Jan 19, 2026 IST
-const IST_OFFSET = 5.5 * 60 * 60 * 1000; // +5:30
 
 let virtualDate = null; // For testing/time-travel
 
 const DateService = {
     // Get current time in IST (or virtual time if set)
+    // Returns a Date object where the UTC components match the IST time
+    // e.g. If IST is 16:00, this returns a Date that says 16:00 UTC
     getNow: () => {
         if (virtualDate) {
             return new Date(virtualDate);
         }
         
-        // Convert local server time to IST
-        const now = new Date();
-        const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-        return new Date(utc + IST_OFFSET);
+        // Robust IST Conversion:
+        // 1. Get current Absolute UTC time
+        // 2. Add 5 hours 30 minutes (19800000 ms)
+        // This creates a "Shifted Date" where .toISOString() matches IST
+        return new Date(Date.now() + 19800000); 
     },
 
     // Set virtual time (Test only)
@@ -28,8 +30,11 @@ const DateService = {
 
     // Get strictly formatted "YYYY-MM-DD" in IST
     getTodayDateString: () => {
-        const now = DateService.getNow();
-        return now.toISOString().split('T')[0];
+        if (virtualDate) {
+            return virtualDate.toISOString().split('T')[0];
+        }
+        // Use Intl to guarantee correct IST Date String regardless of offset tricks
+        return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
     },
 
     getChallengeInfo: () => {
