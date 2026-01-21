@@ -47,7 +47,8 @@ const DateService = {
                 status: 'PRE_START',
                 dayNumber: 0,
                 currentDate: DateService.getTodayDateString(),
-                startDate: '2026-01-19'
+                startDate: '2026-01-19',
+                isGracePeriodActive: false
             };
         }
 
@@ -62,16 +63,20 @@ const DateService = {
                 status: 'COMPLETED',
                 dayNumber: dayNumber,
                 currentDate: DateService.getTodayDateString(),
-                startDate: '2026-01-19'
+                startDate: '2026-01-19',
+                isGracePeriodActive: false
             };
         }
+
+        const currentHour = now.getHours();
 
         return {
             isActive: true,
             status: 'ACTIVE',
             dayNumber: dayNumber,
             currentDate: DateService.getTodayDateString(),
-            startDate: '2026-01-19'
+            startDate: '2026-01-19',
+            isGracePeriodActive: currentHour < 10
         };
     },
 
@@ -89,11 +94,11 @@ const DateService = {
             return true;
         }
 
-        // Allowed for Yesterday ONLY IF current time is before 9:00 AM
+        // Allowed for Yesterday ONLY IF current time is before 10:00 AM
         if (logDateString === yesterdayStr) {
             const currentHour = now.getHours(); // 0-23
-            // logic: If it's before 9 AM (00:00 - 08:59), allow yesterday.
-            if (currentHour < 9) {
+            // logic: If it's before 10 AM (00:00 - 09:59), allow yesterday.
+            if (currentHour < 10) {
                 return true;
             }
         }
